@@ -17,12 +17,12 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      background: #f0f0f0;
+      background: #f7f7f7;
     }
 
     h1 {
-      text-align: center;
       margin-bottom: 40px;
+      text-align: center;
     }
 
     #buttons {
@@ -32,18 +32,19 @@
       height: 400px;
       border: 2px dashed #ccc;
       border-radius: 20px;
-      background-color: white;
+      background: #fff;
+      overflow: hidden;
     }
 
     button {
+      position: absolute;
       padding: 10px 20px;
       font-size: 20px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      position: absolute;
-      transition: all 0.2s ease;
       white-space: nowrap;
+      transition: all 0.2s ease;
     }
 
     #yesBtn {
@@ -52,15 +53,13 @@
       left: 50%;
       top: 60%;
       transform: translate(-50%, -50%);
-      width: 100px;
-      height: 50px;
+      z-index: 2;
     }
 
     #noBtn {
       background-color: #f44336;
       color: white;
-      left: 60%;
-      top: 20%;
+      z-index: 1;
     }
   </style>
 </head>
@@ -79,29 +78,61 @@
     let yesWidth = 100;
     let yesHeight = 50;
 
+    // Başlangıç konumunu ayarla (ilk başta çakışmasın)
+    positionNoButton();
+
     noBtn.addEventListener("click", () => {
-      // Container boyutları
-      const maxX = container.clientWidth - noBtn.offsetWidth;
-      const maxY = container.clientHeight - noBtn.offsetHeight;
-
-      // Rastgele konum (daha geniş aralık)
-      const randomX = Math.floor(Math.random() * maxX);
-      const randomY = Math.floor(Math.random() * maxY);
-
-      noBtn.style.left = `${randomX}px`;
-      noBtn.style.top = `${randomY}px`;
-
-      // Evet butonunu %30 büyüt
+      // Evet büyüt
       yesWidth *= 1.3;
       yesHeight *= 1.3;
 
       yesBtn.style.width = `${yesWidth}px`;
       yesBtn.style.height = `${yesHeight}px`;
+
+      // Eğer Evet, container'ın %80'inden büyükse Hayır'ı gizle
+      if (yesWidth > container.clientWidth * 0.8 || yesHeight > container.clientHeight * 0.8) {
+        noBtn.style.display = "none";
+        return;
+      }
+
+      // Hayır'ı yeniden konumlandır
+      positionNoButton();
     });
 
     yesBtn.addEventListener("click", () => {
-      window.location.href = "https://example.com/bulusma-tamam"; // burayı dilediğine göre değiştir
+      window.location.href = "https://example.com/evet"; // Evet'e basınca gidecek yer
     });
+
+    function positionNoButton() {
+      const maxX = container.clientWidth - noBtn.offsetWidth;
+      const maxY = container.clientHeight - noBtn.offsetHeight;
+
+      let tries = 100;
+      while (tries-- > 0) {
+        const randomX = Math.floor(Math.random() * maxX);
+        const randomY = Math.floor(Math.random() * maxY);
+
+        // Evet'in alanı ile çakışma kontrolü
+        const yesRect = yesBtn.getBoundingClientRect();
+        const noRect = {
+          left: container.offsetLeft + randomX,
+          top: container.offsetTop + randomY,
+          right: container.offsetLeft + randomX + noBtn.offsetWidth,
+          bottom: container.offsetTop + randomY + noBtn.offsetHeight
+        };
+
+        if (
+          noRect.right < yesRect.left ||
+          noRect.left > yesRect.right ||
+          noRect.bottom < yesRect.top ||
+          noRect.top > yesRect.bottom
+        ) {
+          noBtn.style.left = `${randomX}px`;
+          noBtn.style.top = `${randomY}px`;
+          break;
+        }
+      }
+    }
   </script>
 </body>
 </html>
